@@ -1,0 +1,18 @@
+/* WHYOPEN – Shared Styles */
+/* This file is included as a web-accessible resource */
+
+:root {
+  --bg: #09090f;
+  --accent: #6366f1;
+  --text: #f0eeff;
+  --muted: rgba(240,238,255,0.45);
+  --border: rgba(255,255,255,0.07);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+}

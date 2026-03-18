@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WHYOPEN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #09090f;
+      --surface: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.07);
+      --accent: #6366f1;
+      --accent-glow: rgba(99,102,241,0.3);
+      --text: #f1f0ff;
+      --muted: rgba(241,240,255,0.45);
+      --warn: #f59e0b;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.18;
+      pointer-events: none;
+    }
+    .bg-orb-1 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, #6366f1, transparent);
+      top: -200px; left: -100px;
+      animation: drift1 20s ease-in-out infinite alternate;
+    }
+    .bg-orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, #8b5cf6, transparent);
+      bottom: -100px; right: -100px;
+      animation: drift2 15s ease-in-out infinite alternate;
+    }
+    .bg-orb-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, #06b6d4, transparent);
+      top: 50%; right: 20%;
+      animation: drift3 25s ease-in-out infinite alternate;
+      opacity: 0.1;
+    }
+
+    @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(60px, 40px) scale(1.1); } }
+    @keyframes drift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-40px, -30px) scale(1.15); } }
+    @keyframes drift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(30px, 60px) scale(0.9); } }
+
+    /* Grid lines */
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      gap: 0;
+    }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 48px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+
+    .logo-text {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #fff, rgba(255,255,255,0.6));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Clock */
+    .clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 72px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 60%, rgba(255,255,255,0.4));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      animation: fadeUp 0.6s 0.1s ease both;
+      margin-bottom: 8px;
+    }
+
+    .date-str {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      animation: fadeUp 0.6s 0.2s ease both;
+      margin-bottom: 56px;
+    }
+
+    /* Main prompt card */
+    .prompt-card {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+      animation: fadeUp 0.6s 0.3s ease both;
+      backdrop-filter: blur(20px);
+    }
+
+    .prompt-header {
+      margin-bottom: 24px;
+    }
+
+    .prompt-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .prompt-question {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .prompt-question span {
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .reason-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 16px 20px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.2s ease;
+      caret-color: var(--accent);
+    }
+
+    .reason-input::placeholder {
+      color: rgba(255,255,255,0.2);
+      font-weight: 400;
+    }
+
+    .reason-input:focus {
+      border-color: rgba(99,102,241,0.5);
+      background: rgba(99,102,241,0.06);
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.1), 0 0 20px rgba(99,102,241,0.1);
+    }
+
+    .char-count {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      font-family: 'JetBrains Mono', monospace;
+      pointer-events: none;
+    }
+
+    /* Quick suggestions */
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .suggestion-chip {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .suggestion-chip:hover {
+      background: rgba(99,102,241,0.12);
+      border-color: rgba(99,102,241,0.3);
+      color: #a5b4fc;
+      transform: translateY(-1px);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: linear-gradient(135deg, #6366f1, #7c3aed);
+      border: none;
+      border-radius: 12px;
+      padding: 14px 24px;
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 24px rgba(99,102,241,0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(99,102,241,0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px 20px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+
+    /* Bottom stats row */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 520px;
+      animation: fadeUp 0.6s 0.45s ease both;
+    }
+
+    .stat-pill {
+      flex: 1;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .stat-pill:hover {
+      background: rgba(255,255,255,0.06);
+      transform: translateY(-1px);
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .focus-score-pill .stat-value {
+      color: #6366f1;
+    }
+
+    /* Focus mode badge */
+    .focus-mode-badge {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #a5b4fc;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 100;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .focus-mode-badge:hover {
+      background: rgba(99,102,241,0.2);
+    }
+
+    .focus-mode-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #6366f1;
+    }
+
+    .focus-mode-badge.active {
+      background: rgba(99,102,241,0.2);
+      border-color: rgba(99,102,241,0.5);
+    }
+
+    .focus-mode-badge.active .dot {
+      background: #4ade80;
+      box-shadow: 0 0 6px #4ade80;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Dashboard link */
+    .dash-link {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      z-index: 100;
+    }
+
+    .dash-link:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+
+    /* Success state */
+    .success-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 0 32px rgba(74,222,128,0.3);
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .success-reason-display {
+      font-size: 15px;
+      color: var(--muted);
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-weight: 600;
+    }
+
+    .success-hint {
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Distraction warning banner */
+    .distraction-banner {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--warn);
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .distraction-banner.show { display: flex; }
+
+    /* Recent reasons */
+    .recent-section {
+      margin-top: 16px;
+    }
+
+    .recent-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 8px;
+    }
+
+    .recent-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .recent-item {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .recent-item:hover {
+      color: rgba(255,255,255,0.8);
+      background: rgba(99,102,241,0.08);
+      border-color: rgba(99,102,241,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="grid-bg"></div>
+
+  <a class="dash-link" id="dashLink">
+    <span>📊</span>
+    <span>Dashboard</span>
+  </a>
+
+  <div class="focus-mode-badge" id="focusToggle">
+    <div class="dot"></div>
+    <span id="focusLabel">Focus Mode</span>
+  </div>
+
+  <div class="container">
+    <div class="logo">
+      <div class="logo-mark">🧠</div>
+      <span class="logo-text">WHYOPEN</span>
+    </div>
+
+    <div class="clock" id="clock">00:00</div>
+    <div class="date-str" id="dateStr">Loading…</div>
+
+    <div class="prompt-card" id="promptCard">
+      <div id="promptForm">
+        <div class="prompt-header">
+          <div class="prompt-eyebrow">🎯 Mindful Check-in</div>
+          <div class="prompt-question">Why did you open <span>this tab?</span></div>
+        </div>
+
+        <div class="distraction-banner" id="distractionBanner">
+          <span>⚠️</span>
+          <span id="distractionMsg">This looks like a distraction site.</span>
+        </div>
+
+        <div class="input-wrapper">
+          <input
+            type="text"
+            class="reason-input"
+            id="reasonInput"
+            placeholder="e.g. Research machine learning papers…"
+            maxlength="120"
+            autocomplete="off"
+            spellcheck="false"
+            autofocus
+          />
+          <span class="char-count" id="charCount">0/120</span>
+        </div>
+
+        <div class="suggestions" id="suggestions">
+          <span class="suggestion-chip" data-val="Research a topic">🔍 Research</span>
+          <span class="suggestion-chip" data-val="Watch a tutorial">📺 Tutorial</span>
+          <span class="suggestion-chip" data-val="Read an article">📰 Read</span>
+          <span class="suggestion-chip" data-val="Check email">📧 Email</span>
+          <span class="suggestion-chip" data-val="Work task">💼 Work</span>
+          <span class="suggestion-chip" data-val="Shopping">🛒 Shopping</span>
+        </div>
+
+        <div class="recent-section" id="recentSection" style="display:none">
+          <div class="recent-label">Recent reasons</div>
+          <div class="recent-items" id="recentItems"></div>
+        </div>
+
+        <div class="btn-row" style="margin-top:20px">
+          <button class="btn-primary" id="saveBtn" disabled>
+            Set My Purpose →
+          </button>
+          <button class="btn-secondary" id="skipBtn">
+            Skip
+          </button>
+        </div>
+      </div>
+
+      <div class="success-state" id="successState">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Purpose Set!</div>
+        <div class="success-reason-display" id="successReason"></div>
+        <div class="success-hint">Navigate with intention</div>
+      </div>
+    </div>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-pill" id="tabStatPill">
+        <span class="stat-value" id="statTabs">–</span>
+        <span class="stat-label">Tabs Today</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-value" id="statPurpose">–</span>
+        <span class="stat-label">Purposeful</span>
+      </div>
+      <div class="stat-pill focus-score-pill">
+        <span class="stat-value" id="statScore">–%</span>
+        <span class="stat-label">Focus Score</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="newtab.js"></script>
+</body>
+</html>

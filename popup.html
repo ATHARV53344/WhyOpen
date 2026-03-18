@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WHYOPEN</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d14; --border: rgba(255,255,255,0.07);
+      --accent: #6366f1; --text: #f0eeff; --muted: rgba(240,238,255,0.4);
+    }
+    body { width: 360px; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow: hidden; }
+
+    /* Header */
+    .header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 12px; border-bottom:1px solid var(--border); }
+    .logo { display:flex; align-items:center; gap:8px; }
+    .logo-mark { width:26px; height:26px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px; }
+    .logo-name { font-size:14px; font-weight:800; letter-spacing:0.04em; }
+
+    /* Focus toggle button */
+    .focus-toggle { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:20px; padding:5px 11px; cursor:pointer; font-size:11px; font-weight:700; color:var(--muted); transition:all 0.2s; user-select:none; }
+    .focus-toggle.active { background:rgba(99,102,241,0.15); border-color:rgba(99,102,241,0.4); color:#a5b4fc; }
+    .focus-dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.3); }
+    .focus-toggle.active .focus-dot { background:#4ade80; box-shadow:0 0 4px #4ade80; }
+
+    /* Why section */
+    .why-section { padding:18px 16px 14px; border-bottom:1px solid var(--border); }
+    .why-eyebrow { font-size:9px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); margin-bottom:6px; }
+    .why-question { font-size:18px; font-weight:800; margin-bottom:14px; line-height:1.2; }
+    .why-question span { background:linear-gradient(135deg,#6366f1,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .why-input { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px 14px; color:var(--text); font-family:'Syne',sans-serif; font-size:13px; font-weight:600; outline:none; transition:all 0.2s; caret-color:var(--accent); margin-bottom:10px; }
+    .why-input::placeholder { color:rgba(255,255,255,0.2); font-weight:400; }
+    .why-input:focus { border-color:rgba(99,102,241,0.5); background:rgba(99,102,241,0.06); box-shadow:0 0 0 3px rgba(99,102,241,0.1); }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+    .chip { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:4px 10px; font-size:11px; font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; user-select:none; }
+    .chip:hover { background:rgba(99,102,241,0.12); border-color:rgba(99,102,241,0.3); color:#a5b4fc; }
+    .btn-row { display:flex; gap:8px; }
+    .btn-set { flex:1; background:linear-gradient(135deg,#6366f1,#7c3aed); border:none; border-radius:10px; padding:11px; color:white; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s; box-shadow:0 4px 16px rgba(99,102,241,0.25); }
+    .btn-set:hover:not(:disabled) { transform:translateY(-1px); }
+    .btn-set:disabled { opacity:0.35; cursor:not-allowed; }
+    .btn-skip { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:11px 14px; color:var(--muted); font-family:'Syne',sans-serif; font-size:12px; font-weight:600; cursor:pointer; }
+    .btn-skip:hover { background:rgba(255,255,255,0.08); color:var(--text); }
+    .success-banner { display:none; align-items:center; gap:10px; background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); border-radius:10px; padding:10px 14px; margin-top:10px; font-size:13px; font-weight:700; color:#4ade80; }
+    .success-banner.show { display:flex; }
+
+    /* Current reason */
+    .current-section { padding:12px 16px; border-bottom:1px solid var(--border); }
+    .section-label { font-size:9px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.25); margin-bottom:8px; }
+    .reason-card { background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:10px; padding:10px 12px; }
+    .reason-text { font-size:13px; font-weight:700; line-height:1.4; }
+    .reason-meta { font-size:10px; color:var(--muted); margin-top:3px; font-family:'JetBrains Mono',monospace; }
+    .no-reason { font-size:12px; color:rgba(255,255,255,0.2); font-style:italic; }
+    .reason-actions { display:flex; gap:6px; margin-top:8px; }
+    .btn-done-purpose {
+      flex:1; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.25);
+      border-radius:8px; padding:6px 10px; color:#4ade80;
+      font-family:'Syne',sans-serif; font-size:11px; font-weight:700;
+      cursor:pointer; transition:all 0.15s;
+    }
+    .btn-done-purpose:hover { background:rgba(74,222,128,0.2); }
+    .btn-delete-purpose {
+      background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2);
+      border-radius:8px; padding:6px 10px; color:rgba(248,113,113,0.7);
+      font-family:'Syne',sans-serif; font-size:11px; font-weight:700;
+      cursor:pointer; transition:all 0.15s;
+    }
+    .btn-delete-purpose:hover { background:rgba(239,68,68,0.15); color:#f87171; }
+
+    /* Stats */
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--border); }
+    .stat { padding:10px 14px; border-right:1px solid var(--border); text-align:center; }
+    .stat:last-child { border-right:none; }
+    .stat-val { display:block; font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:500; }
+    .stat.score .stat-val { color:#6366f1; }
+    .stat-lbl { display:block; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-top:1px; }
+
+    /* Footer */
+    .footer { display:flex; align-items:center; justify-content:space-between; padding:9px 16px; }
+    .footer-link { font-size:11px; font-weight:700; color:var(--muted); cursor:pointer; transition:color 0.15s; text-decoration:none; }
+    .footer-link:hover { color:var(--text); }
+
+    /* ── FOCUS MODE MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: #13131f;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      padding: 22px;
+      width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+      animation: modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    @keyframes modalIn {
+      from { opacity:0; transform:scale(0.92) translateY(10px); }
+      to { opacity:1; transform:scale(1) translateY(0); }
+    }
+
+    .modal-header { margin-bottom:16px; }
+    .modal-title { font-size:17px; font-weight:800; margin-bottom:4px; }
+    .modal-sub { font-size:11px; color:var(--muted); line-height:1.5; }
+
+    /* Site input row */
+    .site-input-row { display:flex; gap:8px; margin-bottom:10px; }
+    .site-input {
+      flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px; padding:10px 12px; color:var(--text);
+      font-family:'Syne',sans-serif; font-size:12px; font-weight:600; outline:none;
+      transition:all 0.2s; caret-color:var(--accent);
+    }
+    .site-input::placeholder { color:rgba(255,255,255,0.2); font-weight:400; }
+    .site-input:focus { border-color:rgba(99,102,241,0.5); background:rgba(99,102,241,0.06); }
+    .btn-add-site {
+      background:var(--accent); border:none; border-radius:10px; padding:10px 14px;
+      color:white; font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+      cursor:pointer; transition:all 0.15s; white-space:nowrap;
+    }
+    .btn-add-site:hover { background:#5558e8; }
+
+    /* Suggestion pills */
+    .suggestions-label { font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.25); margin-bottom:8px; }
+    .suggestion-pills { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; }
+    .suggestion-pill {
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+      border-radius:14px; padding:3px 9px; font-size:10px; font-weight:600;
+      color:rgba(255,255,255,0.35); cursor:pointer; transition:all 0.15s; user-select:none;
+    }
+    .suggestion-pill:hover { background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.3); color:#a5b4fc; }
+    .suggestion-pill.added { background:rgba(99,102,241,0.15); border-color:rgba(99,102,241,0.35); color:#a5b4fc; opacity:0.5; cursor:default; pointer-events:none; }
+
+    /* Blocked sites list */
+    .blocked-list-label { font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.25); margin-bottom:8px; }
+    .blocked-list { display:flex; flex-wrap:wrap; gap:5px; min-height:28px; margin-bottom:16px; }
+    .blocked-tag {
+      display:flex; align-items:center; gap:5px;
+      background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25);
+      border-radius:8px; padding:3px 8px 3px 10px;
+      font-size:11px; font-weight:700; color:#f87171;
+    }
+    .blocked-tag-remove {
+      background:none; border:none; color:rgba(248,113,113,0.6); cursor:pointer;
+      font-size:14px; line-height:1; padding:0; transition:color 0.1s;
+    }
+    .blocked-tag-remove:hover { color:#f87171; }
+    .empty-list { font-size:11px; color:rgba(255,255,255,0.15); font-style:italic; padding:4px 0; }
+
+    /* Modal buttons */
+    .modal-btn-row { display:flex; gap:8px; }
+    .btn-activate {
+      flex:1; background:linear-gradient(135deg,#6366f1,#7c3aed); border:none;
+      border-radius:10px; padding:12px; color:white; font-family:'Syne',sans-serif;
+      font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s;
+      box-shadow:0 4px 16px rgba(99,102,241,0.3);
+    }
+    .btn-activate:hover { transform:translateY(-1px); }
+    .btn-cancel {
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+      border-radius:10px; padding:12px 16px; color:var(--muted);
+      font-family:'Syne',sans-serif; font-size:12px; font-weight:600; cursor:pointer;
+    }
+    .btn-cancel:hover { background:rgba(255,255,255,0.08); color:var(--text); }
+
+    /* Turn off focus mode button row */
+    .focus-off-row { display:flex; gap:8px; }
+    .btn-turn-off {
+      flex:1; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25);
+      border-radius:10px; padding:12px; color:#f87171; font-family:'Syne',sans-serif;
+      font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s;
+    }
+    .btn-turn-off:hover { background:rgba(239,68,68,0.18); }
+    .btn-edit-sites {
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+      border-radius:10px; padding:12px 14px; color:var(--muted);
+      font-family:'Syne',sans-serif; font-size:12px; font-weight:600; cursor:pointer;
+    }
+    .btn-edit-sites:hover { background:rgba(255,255,255,0.08); color:var(--text); }
+
+    .modal-active-info { margin-bottom:14px; }
+    .active-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.25); border-radius:10px; padding:8px 12px; font-size:12px; font-weight:700; color:#4ade80; margin-bottom:10px; }
+    .active-dot { width:6px; height:6px; border-radius:50%; background:#4ade80; box-shadow:0 0 6px #4ade80; animation:pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .active-sites-preview { font-size:11px; color:var(--muted); line-height:1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-mark">🧠</div>
+      <span class="logo-name">WHYOPEN</span>
+    </div>
+    <div class="focus-toggle" id="focusToggle">
+      <div class="focus-dot"></div>
+      <span id="focusLabel">Focus Mode</span>
+    </div>
+  </div>
+
+  <!-- WHY prompt -->
+  <div class="why-section">
+    <div class="why-eyebrow">🎯 Mindful Check-in</div>
+    <div class="why-question">Why did you open <span>this tab?</span></div>
+    <input type="text" class="why-input" id="whyInput" placeholder="e.g. Watch React tutorial…" maxlength="100" autocomplete="off" autofocus />
+    <div class="chips">
+      <span class="chip" data-val="Research a topic">🔍 Research</span>
+      <span class="chip" data-val="Watch a tutorial">📺 Tutorial</span>
+      <span class="chip" data-val="Read an article">📰 Read</span>
+      <span class="chip" data-val="Check email">📧 Email</span>
+      <span class="chip" data-val="Work task">💼 Work</span>
+      <span class="chip" data-val="Shopping">🛒 Shop</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn-set" id="setBtn" disabled>Set My Purpose →</button>
+      <button class="btn-skip" id="skipBtn">Skip</button>
+    </div>
+    <div class="success-banner" id="successBanner">
+      <span>✓</span><span id="successText">Purpose saved!</span>
+    </div>
+  </div>
+
+  <!-- Current reason -->
+  <div class="current-section">
+    <div class="section-label">Current Tab Purpose</div>
+    <div id="currentReason"><div class="no-reason">No purpose set for this tab yet</div></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat"><span class="stat-val" id="statTabs">–</span><span class="stat-lbl">Tabs</span></div>
+    <div class="stat"><span class="stat-val" id="statPurpose">–</span><span class="stat-lbl">Focused</span></div>
+    <div class="stat score"><span class="stat-val" id="statScore">–%</span><span class="stat-lbl">Score</span></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a class="footer-link" id="dashLink">📊 Dashboard</a>
+    <a class="footer-link" id="historyLink">📋 History</a>
+    <a class="footer-link" id="settingsLink">⚙️ Settings</a>
+  </div>
+
+  <!-- ── FOCUS MODE MODAL ── -->
+  <div class="modal-overlay" id="focusModal">
+    <div class="modal">
+
+      <!-- State A: Focus is OFF → setup modal -->
+      <div id="modalSetup">
+        <div class="modal-header">
+          <div class="modal-title">🎯 Set Up Focus Mode</div>
+          <div class="modal-sub">Enter the websites you want to block. Only these sites will be blocked — nothing else.</div>
+        </div>
+
+        <div class="site-input-row">
+          <input type="text" class="site-input" id="siteInput" placeholder="e.g. instagram.com" autocomplete="off" />
+          <button class="btn-add-site" id="addSiteBtn">+ Add</button>
+        </div>
+
+        <div class="suggestions-label">Quick add common distractions</div>
+        <div class="suggestion-pills" id="suggestionPills"></div>
+
+        <div class="blocked-list-label">Sites to block</div>
+        <div class="blocked-list" id="blockedList">
+          <span class="empty-list">No sites added yet — add some above</span>
+        </div>
+
+        <div class="modal-btn-row">
+          <button class="btn-activate" id="activateBtn">🚀 Activate Focus Mode</button>
+          <button class="btn-cancel" id="cancelBtn">Cancel</button>
+        </div>
+      </div>
+
+      <!-- State B: Focus is ON → manage modal -->
+      <div id="modalActive" style="display:none">
+        <div class="modal-header">
+          <div class="modal-title">🎯 Focus Mode</div>
+        </div>
+        <div class="modal-active-info">
+          <div class="active-badge"><div class="active-dot"></div> Active — blocking your sites</div>
+          <div class="active-sites-preview" id="activeSitesPreview">Loading…</div>
+        </div>
+        <div class="focus-off-row">
+          <button class="btn-turn-off" id="turnOffBtn">⏹ Turn Off Focus Mode</button>
+          <button class="btn-edit-sites" id="editSitesBtn">✏️ Edit Sites</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

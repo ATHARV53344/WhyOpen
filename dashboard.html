@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WHYOPEN – Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080810;
+      --surface: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.07);
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --text: #f0eeff;
+      --muted: rgba(240,238,255,0.4);
+      --success: #4ade80;
+      --warn: #f59e0b;
+      --sidebar-w: 220px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow: hidden;
+    }
+
+    .layout {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
+      margin-bottom: 32px;
+    }
+
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .sidebar-logo-text {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border-radius: 0;
+    }
+
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+    .nav-item.active {
+      color: var(--text);
+      background: rgba(99,102,241,0.1);
+      border-right: 2px solid var(--accent);
+    }
+
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .sidebar-spacer { flex: 1; }
+
+    .focus-toggle-sidebar {
+      margin: 0 12px 12px;
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .focus-toggle-sidebar:hover { background: rgba(99,102,241,0.14); }
+
+    .toggle-label { font-size: 12px; font-weight: 700; color: #a5b4fc; }
+
+    .toggle-switch {
+      width: 36px; height: 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      position: relative;
+      transition: background 0.2s ease;
+    }
+
+    .toggle-switch.on { background: var(--accent); }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: left 0.2s ease;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    .toggle-switch.on .toggle-knob { left: 18px; }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+    }
+
+    .main::-webkit-scrollbar { width: 4px; }
+    .main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    /* ── Stat Cards ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0.5;
+    }
+
+    .stat-card.green::before { background: linear-gradient(90deg, #4ade80, transparent); }
+    .stat-card.amber::before { background: linear-gradient(90deg, #f59e0b, transparent); }
+    .stat-card.cyan::before { background: linear-gradient(90deg, #06b6d4, transparent); }
+
+    .card-icon { font-size: 22px; margin-bottom: 12px; }
+    .card-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    /* ── Focus Score Ring ── */
+    .score-section {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .score-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .score-ring {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    .score-ring svg { transform: rotate(-90deg); }
+
+    .score-ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 10; }
+    .score-ring-fill { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+
+    .score-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 30px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .score-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    /* ── Time bars ── */
+    .time-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .time-card h3 {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .time-row {
+      margin-bottom: 16px;
+    }
+
+    .time-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .time-row-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .time-row-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .time-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .time-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.8s ease;
+    }
+
+    .time-bar-fill.focused { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+    .time-bar-fill.distracted { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+
+    /* ── Top Sites ── */
+    .sites-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .sites-card h3 {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .site-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .site-row:last-child { border-bottom: none; }
+
+    .site-rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      width: 20px;
+      text-align: right;
+    }
+
+    .site-favicon {
+      width: 20px; height: 20px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+    }
+
+    .site-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+
+    .site-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .site-distraction-tag {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 4px;
+      color: var(--warn);
+    }
+
+    /* ── History tab ── */
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .history-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: background 0.15s ease;
+    }
+
+    .history-item:hover { background: rgba(255,255,255,0.04); }
+
+    .history-icon {
+      width: 36px; height: 36px;
+      background: rgba(99,102,241,0.1);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .history-content { flex: 1; min-width: 0; }
+    .history-reason {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .history-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-icon { font-size: 48px; display: block; margin-bottom: 16px; }
+    .empty-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .empty-sub { font-size: 13px; }
+
+    /* ── Settings tab ── */
+    .settings-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .settings-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .settings-row:last-child { border-bottom: none; }
+
+    .settings-row-info { }
+    .settings-row-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .settings-row-desc { font-size: 11px; color: var(--muted); }
+
+    .settings-toggle {
+      width: 40px; height: 22px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 11px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .settings-toggle.on { background: var(--accent); }
+
+    .settings-toggle-knob {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 16px; height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: left 0.2s ease;
+    }
+
+    .settings-toggle.on .settings-toggle-knob { left: 21px; }
+
+    .settings-select {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: #f87171;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-danger:hover { background: rgba(239,68,68,0.18); }
+
+    /* Header bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .date-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+    }
+
+    .refresh-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .refresh-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+    /* Distraction sites list */
+    .dist-site-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .dist-site-chip {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--warn);
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">🧠</div>
+        <span class="sidebar-logo-text">WHYOPEN</span>
+      </div>
+
+      <nav>
+        <div class="nav-item active" data-page="overview">
+          <span class="nav-icon">📊</span> Overview
+        </div>
+        <div class="nav-item" data-page="history">
+          <span class="nav-icon">📋</span> Reason History
+        </div>
+        <div class="nav-item" data-page="sites">
+          <span class="nav-icon">🌐</span> Top Sites
+        </div>
+        <div class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙️</span> Settings
+        </div>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="focus-toggle-sidebar" id="focusSidebarToggle">
+        <span class="toggle-label">🎯 Focus Mode</span>
+        <div class="toggle-switch" id="focusSidebarSwitch">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <!-- Overview page -->
+      <div class="page active" id="page-overview">
+        <div class="topbar">
+          <div>
+            <div class="page-title">Today's Overview</div>
+            <div class="page-subtitle" id="todayDate">Loading…</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="date-badge" id="liveClock">--:--</div>
+            <button class="refresh-btn" id="refreshBtn">↻ Refresh</button>
+          </div>
+        </div>
+
+        <div class="cards-grid">
+          <div class="stat-card">
+            <div class="card-icon">🗂️</div>
+            <div class="card-value" id="cardTabs">0</div>
+            <div class="card-label">Tabs Opened</div>
+          </div>
+          <div class="stat-card green">
+            <div class="card-icon">🎯</div>
+            <div class="card-value" id="cardPurpose">0</div>
+            <div class="card-label">Purposeful</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="card-icon">🌀</div>
+            <div class="card-value" id="cardDistracted">0</div>
+            <div class="card-label">Distracted</div>
+          </div>
+          <div class="stat-card cyan">
+            <div class="card-icon">⚡</div>
+            <div class="card-value" id="cardFocusTime">0m</div>
+            <div class="card-label">Focus Time</div>
+          </div>
+        </div>
+
+        <div class="score-section">
+          <div class="score-card">
+            <div class="score-ring">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle class="score-ring-bg" cx="60" cy="60" r="50"/>
+                <circle class="score-ring-fill" id="scoreRingFill" cx="60" cy="60" r="50"
+                  stroke-dasharray="314" stroke-dashoffset="314"/>
+              </svg>
+              <div class="score-center">
+                <span class="score-number" id="scoreBig">–</span>
+                <span class="score-label">Focus %</span>
+              </div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:14px;font-weight:800;margin-bottom:4px">Focus Score</div>
+              <div style="font-size:12px;color:var(--muted)" id="scoreDesc">Calculating…</div>
+            </div>
+          </div>
+
+          <div class="time-card">
+            <h3>Time Breakdown</h3>
+            <div class="time-row">
+              <div class="time-row-header">
+                <span class="time-row-label">🎯 Focused Browsing</span>
+                <span class="time-row-val" id="focusedTimeStr">0m</span>
+              </div>
+              <div class="time-bar">
+                <div class="time-bar-fill focused" id="focusedBar" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="time-row">
+              <div class="time-row-header">
+                <span class="time-row-label">🌀 Distracted Browsing</span>
+                <span class="time-row-val" id="distractedTimeStr">0m</span>
+              </div>
+              <div class="time-bar">
+                <div class="time-bar-fill distracted" id="distractedBar" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="sites-card" style="margin-bottom:0">
+            <h3>⚠️ Distraction Sites Detected</h3>
+            <div class="dist-site-list" id="distractionSiteList">
+              <span style="font-size:12px;color:var(--muted)">None detected today</span>
+            </div>
+          </div>
+
+          <div class="sites-card" style="margin-bottom:0">
+            <h3>🏆 Top Sites Today</h3>
+            <div id="topSitesMini"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History page -->
+      <div class="page" id="page-history">
+        <div class="page-title">Reason History</div>
+        <div class="page-subtitle">All the purposes you've set for your tabs</div>
+        <div class="history-list" id="historyList">
+          <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <div class="empty-title">No history yet</div>
+            <div class="empty-sub">Start setting purposes for your tabs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Sites page -->
+      <div class="page" id="page-sites">
+        <div class="page-title">Top Sites</div>
+        <div class="page-subtitle">Where your browsing time goes</div>
+        <div class="sites-card">
+          <h3>All Sites Visited Today</h3>
+          <div id="topSitesFull"></div>
+        </div>
+      </div>
+
+      <!-- Settings page -->
+      <div class="page" id="page-settings">
+        <div class="page-title">Settings</div>
+        <div class="page-subtitle">Customize your mindful browsing experience</div>
+
+        <div class="settings-section">
+          <div class="settings-header">Notifications</div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Show Reminder Notifications</div>
+              <div class="settings-row-desc">Get notified of your tab purpose when switching back</div>
+            </div>
+            <div class="settings-toggle on" id="setting-notifications">
+              <div class="settings-toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Distraction Warnings</div>
+              <div class="settings-row-desc">Warn when visiting distracting sites</div>
+            </div>
+            <div class="settings-toggle on" id="setting-distraction">
+              <div class="settings-toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">🎯 Mismatch Detection</div>
+              <div class="settings-row-desc">Alert when your browsing doesn't match your stated purpose</div>
+            </div>
+            <div class="settings-toggle on" id="setting-mismatch">
+              <div class="settings-toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Reminder Interval</div>
+              <div class="settings-row-desc">How often to remind you of your purpose</div>
+            </div>
+            <select class="settings-select" id="setting-interval">
+              <option value="5">5 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="15" selected>15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">Focus Mode</div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Block Distracting Sites</div>
+              <div class="settings-row-desc">Block sites like YouTube, Reddit during Focus Mode</div>
+            </div>
+            <div class="settings-toggle on" id="setting-block">
+              <div class="settings-toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">Data</div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Clear Today's Stats</div>
+              <div class="settings-row-desc">Reset all statistics for today</div>
+            </div>
+            <button class="btn-danger" id="clearStatsBtn">Clear Stats</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">Distraction Sites List</div>
+          <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+            <div class="settings-row-desc">These sites trigger warnings and are blocked in Focus Mode</div>
+            <div class="dist-site-list">
+              <span class="dist-site-chip">youtube.com</span>
+              <span class="dist-site-chip">instagram.com</span>
+              <span class="dist-site-chip">reddit.com</span>
+              <span class="dist-site-chip">twitter.com</span>
+              <span class="dist-site-chip">x.com</span>
+              <span class="dist-site-chip">facebook.com</span>
+              <span class="dist-site-chip">tiktok.com</span>
+              <span class="dist-site-chip">netflix.com</span>
+              <span class="dist-site-chip">twitch.tv</span>
+              <span class="dist-site-chip">pinterest.com</span>
+              <span class="dist-site-chip">snapchat.com</span>
+              <span class="dist-site-chip">discord.com</span>
+              <span class="dist-site-chip">9gag.com</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
